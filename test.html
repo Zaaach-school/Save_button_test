@@ -1,0 +1,43 @@
+<script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
+
+<label>
+  Name
+  <input id="name">
+</label>
+<button id="save">Save</button>
+<span id="status"></span>
+
+<script>
+  let selectedRowId = null;
+
+  grist.ready({ requiredAccess: "full" });
+
+  grist.onRecord(record => {
+    selectedRowId = record?.id ?? null;
+
+    if (record) {
+      document.getElementById("name").value = record.Name ?? "";
+    }
+  });
+
+  document.getElementById("save").addEventListener("click", async () => {
+    const status = document.getElementById("status");
+
+    if (!selectedRowId) {
+      status.textContent = "Select a row first.";
+      return;
+    }
+
+    try {
+      await grist.docApi.applyUserActions([
+        ["UpdateRecord", "Table1", selectedRowId, {
+          Name: document.getElementById("name").value
+        }]
+      ]);
+
+      status.textContent = "Saved.";
+    } catch (error) {
+      status.textContent = `Save failed: ${error.message}`;
+    }
+  });
+</script>
